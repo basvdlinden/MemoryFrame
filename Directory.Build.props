@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>10.0</LangVersion>
+
+    <Product>MemoryFrame</Product>
+    <Title>MemoryFrame</Title>
+    <Authors>Bas van der Linden</Authors>
+    <Copyright>Copyright © 2022</Copyright>
+    <Version>0.1</Version>
+  </PropertyGroup>
+</Project>

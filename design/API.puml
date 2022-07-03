@@ -1,0 +1,78 @@
+@startuml API
+
+class ImageFactory {
+    {static} IPaddedImageMemoryFactory Padded { get; }
+}
+
+interface IPaddedImageMemoryFactory {
+    IWritableImage2D<T> CreateTransient<T>(int width, int height, int paddingPitch = -1)
+    IOwnedImageMemory<T> CreatePooled<T>(int width, int height, int paddingPitch = -1, bool clearMemory = false)
+    IOwnedImageMemory<T> CreatePooledCopy<T>(IImage2D<T> sourceImage, int paddingPitch = -1)
+    IOwnedImageMemory<T> OwnPooled<T>(IMemoryOwner<T> memoryOwned, int width, int height, int paddingPitch = -1, bool clearMemory = false)
+}
+
+interface IDisposable {
+    void Dispose()
+}
+
+entity "PixelInfo<T>" as PixelInfo_T {
+    int Left
+    int Top
+    T Val
+}
+
+interface "IImage<T>" as IImage_T {
+    int Width { get; }
+    int Height { get; }
+    IEnumerable<T> PixelValues { get; }    
+    IEnumerable<PixelInfo<T>> Pixels { get; }
+}
+
+interface "IImage2D<T>" as IImage2D_T {
+    IWritableImage2D<T> AsTransientCopy()
+    IReadOnlyImage2D<T> AsReadOnly()
+    IReadOnlyList<ReadOnlyMemory<T>> GetPaddedRows()
+}
+
+interface "IWritableImage2D<T>" as IWritableImage2D_T {
+    Span<T> this[int rowIndex] { get; }
+    IReadOnlyList<Memory<T>> PaddedRows { get; }
+    Memory<Memory<T>> PaddedRowsMemory { get; }
+    IWritableImage2D<T> Slice(int left, int top, int width, int height) 
+}
+
+interface "IReadOnlyImage2D<T>" as IReadOnlyImage2D_T {
+    ReadOnlySpan<T> this[int rowIndex] { get; }
+    IReadOnlyList<ReadOnlyMemory<T>> PaddedRows { get; }
+    Memory<Memory<T>> PaddedRowsMemory { get; }
+    IReadOnlyImage2D<T> Slice(int left, int top, int width, int height)
+}
+
+interface "IOwnedImageMemory<T>" as IOwnedImageMemory_T {
+    IImageMemory<T> Image { get; }
+}
+
+interface "IImageMemory<T>" as IImageMemory_T {
+    int RowPitch { get; }
+    Memory<T> Memory { get; }
+    IWritableImage2D<T> AsWritableImage2D()
+    IReadOnlyImage2D<T> AsReadOnlyImage2D()
+    void CompactSlice(int left, int top, int width, int height)
+    void CompactCopy(IImage2D<T> sourceImage)
+    void Copy(IImage2D<T> sourceImage)
+}
+
+IImage_T <|-- IImage2D_T
+PixelInfo_T <. IImage_T
+IImage2D_T <|-- IWritableImage2D_T
+IImage2D_T <|-- IReadOnlyImage2D_T
+
+IImage_T <|-- IImageMemory_T
+IDisposable <|-- IOwnedImageMemory_T
+IImageMemory_T -* IOwnedImageMemory_T : Image
+IWritableImage2D_T <.. IPaddedImageMemoryFactory
+IOwnedImageMemory_T <.. IPaddedImageMemoryFactory
+
+ImageFactory *- IPaddedImageMemoryFactory : Padded
+
+@enduml
