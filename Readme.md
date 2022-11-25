@@ -61,7 +61,7 @@ How:
   * Leases a pooled continuous array.
   * Bytes in the array are transferred in a stream of slices, for optimal usage of resources and minimal latency.
 * Rows in the array are padded, in order to make all pixels part of a vector (SIMD) operation. This enables algorithms to be more maintainable and be more performant. There is no need for a non-vectorized copy of the algorithm, that needs to deal with the pixels at the end.
-* The pooled array is owned by the YS-Image, until it is released and the array is returned to the pool.
+* The pooled array is owned by a `IOwnedImageMemory`, until it is disposed. The dispose will return the array to the pool.
 * Provide 1-dimentional and 2-dimantional views on images.
   * Only 2-dimentional is possible in case of Jagged array.
 * Provide slicing of images, where original sources are encapsulated and represented as `Memory<T>`.
