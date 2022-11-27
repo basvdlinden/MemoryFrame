@@ -53,6 +53,12 @@ namespace MemoryFrame
             return new OwnedImageMemory<T>(memoryOwned, width, height, paddingPitch, rowPitch);
         }
 
+        public int GetBufferSize<T>(int width, int height, int paddingPitch = -1) where T : struct
+        {
+            int rowPitch = GetRowPitch<T>(width, ref paddingPitch);
+            return rowPitch * height;
+        }
+
         private static int GetRowPitch<T>(int width, ref int paddingPitch) where T : struct
         {
             if (paddingPitch == -1)
@@ -61,6 +67,5 @@ namespace MemoryFrame
             }
             return Padding.GetRowPitch(width, paddingPitch);
         }
-
     }
 }

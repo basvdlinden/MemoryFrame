@@ -23,7 +23,7 @@ namespace MemoryFrame.Test
         }
 
         [Test]
-        public void ImageMemory_AddConst()
+        public void ImageMemory_AddConst_SingleLoop()
         {
             int vectorCount = Vector<short>.Count;
             if (vectorCount == 1)
@@ -31,7 +31,7 @@ namespace MemoryFrame.Test
                 Assert.Pass("No SIMD support. Test not possible.");
             }
 
-            using var ownedImageMemory = ImageFactory.Padded.CreatePooled<short>(width: vectorCount + 1, height: 3);
+            using var ownedImageMemory = ImageFactory.Padded.CreatePooled<short>(width: vectorCount * 2 + 1, height: 3);
             var image = ownedImageMemory.Image;
             image.Memory.Span.Fill(11);
             var addValue = new Vector<short>(22);
@@ -49,7 +49,7 @@ namespace MemoryFrame.Test
         }
 
         [Test]
-        public void ImageMemory_Add()
+        public void ImageMemory_AddImage_SingleLoop()
         {
             int vectorCount = Vector<short>.Count;
             if (vectorCount == 1)
@@ -57,8 +57,8 @@ namespace MemoryFrame.Test
                 Assert.Pass("No SIMD support. Test not possible.");
             }
 
-            using var ownedImageMemory1 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount + 1, height: 3);
-            using var ownedImageMemory2 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount + 1, height: 3);
+            using var ownedImageMemory1 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount * 2 + 1, height: 3);
+            using var ownedImageMemory2 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount * 2 + 1, height: 3);
             var span1 = ownedImageMemory1.Image.Memory.Span;
             var span2 = ownedImageMemory2.Image.Memory.Span;
 
@@ -84,7 +84,7 @@ namespace MemoryFrame.Test
         }
 
         [Test]
-        public void Image2D_AddConst()
+        public void Image2D_AddConst_LoopPerRow()
         {
             int vectorCount = Vector<short>.Count;
             if (vectorCount == 1)
@@ -113,7 +113,41 @@ namespace MemoryFrame.Test
         }
 
         [Test]
-        public void ImageMemory_Proof_NoPadding_Pixels_Skipped()
+        public void Image2D_AddImage_Sliced_LoopPerRow()
+        {
+            int vectorCount = Vector<short>.Count;
+            if (vectorCount == 1)
+            {
+                Assert.Pass("No SIMD support. Test not possible.");
+            }
+            int width = vectorCount * 2 + 1;
+            int height = 3;
+            using var ownedImageMemory1 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount * 4 + 1, height: 10);
+            using var ownedImageMemory2 = ImageFactory.Padded.CreatePooled<short>(width: vectorCount * 4 + 1, height: 10);
+            ownedImageMemory1.Image.Memory.Span.Fill(11);
+            ownedImageMemory2.Image.Memory.Span.Fill(22);
+            var image1 = ownedImageMemory1.Image.AsWritableImage2D().Slice(3, 1, width, height);
+            var image2 = ownedImageMemory2.Image.AsWritableImage2D().Slice(5, 3, width, height);
+
+            // SIMD loop per row
+            // ====
+            for (int rowIndex = 0; rowIndex < image1.PaddedRows.Count; rowIndex++)
+            {
+                var shortVectorImage1 = image1.PaddedRows[rowIndex].Span.AsVector();
+                var shortVectorImage2 = image2.PaddedRows[rowIndex].Span.AsVector();
+                for (int i = 0; i < shortVectorImage1.Length; i++)
+                {
+                    shortVectorImage1[i] = shortVectorImage1[i] + shortVectorImage2[i];
+                }
+            }
+            // ====
+
+            Assert.IsTrue(image1.PixelValues.All(p => p == 33), "All pixels have new value");
+        }
+
+
+        [Test]
+        public void ImageMemory_Proof_WrongPadding_Pixels_Skipped()
         {
             int vectorCount = Vector<short>.Count;
             if (vectorCount == 1)
@@ -138,7 +172,7 @@ namespace MemoryFrame.Test
             // ====
 
             Assert.AreEqual(333, image[0][0], "First pixels is included");
-            Assert.AreEqual(111, image[0][vectorCount], "Last pixels is skipped");
+            Assert.AreEqual(111, image[0][vectorCount], "Last pixel is skipped");
         }
     }
 }

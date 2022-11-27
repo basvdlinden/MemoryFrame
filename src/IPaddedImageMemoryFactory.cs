@@ -68,5 +68,16 @@ namespace MemoryFrame
         /// <param name="clearMemory">Whether to clear the memory to the default value of &lt;T&gt;</param>
         /// <returns><see cref="IOwnedImageMemory&lt;T&gt;"/></returns>
         IOwnedImageMemory<T> OwnPooled<T>(IMemoryOwner<T> memoryOwned, int width, int height, int paddingPitch = -1, bool clearMemory = false) where T : struct;
+
+        /// <summary>
+        /// Get the buffer size required for all the padded rows.
+        /// In case you want to calculate the buffer size in bytes, then multiply the returned size with Marshal.SizeOf(default(T)).
+        /// </summary>
+        /// <param name="width">The width of each row.</param>
+        /// <param name="height">The number of rows.</param>
+        /// <param name="paddingPitch">The row-size in memory is padded to the provided paddingPitch. If this value is -1, the pitch will be equal 
+        /// to the SIMD vector size (<see cref="Vector&lt;T&gt;"/>.Count).</param>
+        /// <returns>Number of T entries</returns>
+        int GetBufferSize<T>(int width, int height, int paddingPitch = -1) where T : struct;
     }
 }

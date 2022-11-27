@@ -64,7 +64,7 @@ namespace MemoryFrame
         /// Compacting can increase performance for algorithms that process the image as a single array of pixels, 
         /// by using the <see cref="Memory"/> property.
         /// During the creation of this object, the padding pitch was provided (SIMD vector size by default). This padding pitch is used.
-        /// Note that existing 2D images representations, created with <see cref="AsWritableImage2D"/> and <see cref="AsReadOnlyImage2D"/>, will
+        /// Note that existing 2D image representations, created with <see cref="AsWritableImage2D"/> and <see cref="AsReadOnlyImage2D"/>, will
         /// be corrupted, because the row and pixel indexing will not match the pixel alignment in the changed underlaying block of memory any more.
         /// </summary>
         /// <param name="sourceImage">Image to </param>
